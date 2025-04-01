@@ -1,0 +1,164 @@
+﻿@{
+    ViewData["Title"] = "حالة الطقس";
+}
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8" />
+    <title>حالة الطقس</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            background-color:aqua;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            text-align: center;
+        }
+
+        .city-input {
+            width: 70%;
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .search-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .weather-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .city-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .weather-icon {
+            font-size: 50px;
+            margin: 10px 0;
+        }
+
+        .condition {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .info-item {
+            font-size: 16px;
+        }
+
+        .date-info {
+            margin-top: 15px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <input type="text"
+               class="city-input"
+               id="cityInput"
+               placeholder="اكتب اسم المدينة..." />
+        <button class="search-btn" id="searchBtn">ابحث</button>
+
+        <div class="weather-card" id="weatherCard" style="display: none;">
+            <div class="city-name" id="cityName">-</div>
+            <div class="weather-icon" id="weatherIcon">☀️</div>
+            <div class="condition" id="condition">-</div>
+            <div class="info-row">
+                <div class="info-item" id="humidity">رطوبة: -</div>
+                <div class="info-item" id="wind">رياح: -</div>
+                <div class="info-item" id="temperature">درجة الحرارة: -</div>
+            </div>
+            <div class="date-info" id="dateInfo">-</div>
+        </div>
+    </div>
+
+    <script>
+        async function getWeatherData(City) {
+            const apiUrl = `https://localhost:7090/api/weather?city=${City}`;
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error("حدث خطأ أثناء جلب بيانات الطقس");
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error(error);
+                alert("لا يمكن جلب بيانات الطقس. تأكد من اسم المدينة أو من تشغيل الـ API.");
+                return null;
+            }
+        }
+
+        function updateWeatherCard(data) {
+            document.getElementById("weatherCard").style.display = "block";
+
+            document.getElementById("cityName").innerText = data.city || "-";
+            document.getElementById("condition").innerText = data.condition || "-";
+            document.getElementById("temperature").innerText = `درجة الحرارة: ${data.temperature} °C`;
+
+            const dateObj = new Date(data.date);
+            document.getElementById("dateInfo").innerText = dateObj.toLocaleString('ar-LY');
+
+            document.getElementById("humidity").innerText = `رطوبة: ${data.humidity || '-'}`;
+            document.getElementById("wind").innerText = `رياح: ${data.wind || '-'} km/h`;
+
+            let icon = "☀️";
+            if (data.condition && data.condition.toLowerCase().includes("rain")) {
+                icon = "🌧";
+            } else if (data.condition && data.condition.toLowerCase().includes("cloud")) {
+                icon = "☁️";
+            }
+            document.getElementById("weatherIcon").innerText = icon;
+        }
+
+        document.getElementById("searchBtn").addEventListener("click", async () => {
+            const city = document.getElementById("cityInput").value.trim();
+            if (city === "") {
+                alert("يرجى إدخال اسم المدينة");
+                return;
+            }
+
+            const weatherData = await getWeatherData(city);
+            if (weatherData) {
+                updateWeatherCard(weatherData);
+            }
+        });
+
+        // ✅ جلب بيانات الطقس مباشرة عند فتح الصفحة
+        window.onload = async () => {
+            const defaultCity = "Gaza";
+            document.getElementById("cityInput").value = defaultCity;
+
+            const weatherData = await getWeatherData(defaultCity);
+            if (weatherData) {
+                updateWeatherCard(weatherData);
+            }
+        };
+    </script>
+</body>
+</html>
