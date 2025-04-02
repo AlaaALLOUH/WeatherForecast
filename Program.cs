@@ -5,29 +5,25 @@ using WeatherForecast.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// المصادقة
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
-// خدمة API للطقس
 builder.Services.AddHttpClient<WeatherService>();
-
-// Controllers + Razor Pages
+builder.Services.AddSingleton<RecentCityService>();
 builder.Services.AddControllers();
-builder.Services.AddRazorPages(); // 🔥 لازم
+builder.Services.AddRazorPages(); 
 
 var app = builder.Build();
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(); // 🔥 لعرض ملفات HTML/CSS/JS
+app.UseStaticFiles(); 
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 🔥 ربط الـ API
+
 app.MapControllers();
 
-// 🔥 ربط الواجهة (الرازر)
 app.MapRazorPages();
 app.MapControllerRoute(
     name: "default",

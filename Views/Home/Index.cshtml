@@ -10,41 +10,89 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: sans-serif;
-            background-color:aqua;
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(to bottom, #00c6ff, #0072ff);
             direction: rtl;
         }
 
+        header {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .lang-btn-header {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn-header:hover {
+            background-color: white;
+            color: #0072ff;
+        }
+
         .container {
-            max-width: 400px;
-            margin: 50px auto;
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 20px;
             text-align: center;
         }
 
         .city-input {
             width: 70%;
-            padding: 10px;
-            font-size: 16px;
-            margin: 10px 0;
+            padding: 12px;
+            font-size: 18px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .search-btn {
-            padding: 10px 20px;
+        .search-btn, .lang-btn {
+            padding: 12px 20px;
             font-size: 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 10px;
+            background-color: #ffffff;
+            color: #0072ff;
+            font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .search-btn:hover, .lang-btn:hover {
+            background-color: #0072ff;
+            color: white;
         }
 
         .weather-card {
-            position: relative;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease-in-out;
         }
 
         .city-name {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: bold;
             margin-bottom: 10px;
         }
@@ -55,8 +103,9 @@
         }
 
         .condition {
-            font-size: 20px;
-            margin-bottom: 10px;
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #333;
         }
 
         .info-row {
@@ -67,94 +116,138 @@
 
         .info-item {
             font-size: 16px;
+            color: #555;
         }
 
         .date-info {
-            margin-top: 15px;
+            margin-top: 20px;
             font-size: 16px;
+            color: #666;
         }
     </style>
 </head>
 <body>
 
+    <header >
+        🌤️ طقسي اليوم
+        <button class="lang-btn-header" onclick="toggleLanguage()" style="margin-left:30%">🌐 تغيير اللغة</button>
+    </header>
+
     <div class="container">
-        <input type="text"
-               class="city-input"
-               id="cityInput"
-               placeholder="اكتب اسم المدينة..." />
-        <button class="search-btn" id="searchBtn">ابحث</button>
+        <input type="text" class="city-input" id="cityInput" placeholder="اكتب اسم المدينة..." />
+        <br />
+        <button class="search-btn" id="searchBtn">🔍 ابحث</button>
+        <button class="search-btn" id="weatherByLocation" onclick="getWeatherByLocation()">📍 طقسي حسب موقعي</button>
 
         <div class="weather-card" id="weatherCard" style="display: none;">
             <div class="city-name" id="cityName">-</div>
             <div class="weather-icon" id="weatherIcon">☀️</div>
             <div class="condition" id="condition">-</div>
             <div class="info-row">
-                <div class="info-item" id="humidity">رطوبة: -</div>
-                <div class="info-item" id="wind">رياح: -</div>
-                <div class="info-item" id="temperature">درجة الحرارة: -</div>
+                <div class="info-item" id="humidityLabel">رطوبة: <span id="humidity">-</span></div>
+                <div class="info-item" id="windLabel">رياح: <span id="wind">-</span></div>
+                <div class="info-item" id="temperatureLabel">درجة الحرارة: <span id="temperature">-</span></div>
             </div>
             <div class="date-info" id="dateInfo">-</div>
         </div>
     </div>
 
     <script>
-        async function getWeatherData(City) {
-            const apiUrl = `https://localhost:7090/api/weather?city=${City}`;
+        const currentLang = localStorage.getItem("lang") || "ar";
+
+        function toggleLanguage() {
+            const newLang = currentLang === "ar" ? "en" : "ar";
+            localStorage.setItem("lang", newLang);
+            location.reload();
+        }
+
+        function applyUILanguage() {
+            if (currentLang === "en") {
+                document.querySelector(".lang-btn-header").innerText = "🌐 Change Language";
+                document.getElementById("searchBtn").innerText = "🔍 Search";
+                document.getElementById("weatherByLocation").innerText = "Weather According To My Location📍";
+                document.getElementById("cityInput").placeholder = "Enter city name...";
+                document.getElementById("humidityLabel").childNodes[0].nodeValue = "Humidity: ";
+                document.getElementById("windLabel").childNodes[0].nodeValue = "Wind: ";
+                document.getElementById("temperatureLabel").childNodes[0].nodeValue = "Temperature: ";
+            } else {
+                document.querySelector(".lang-btn-header").innerText = "🌐 تغيير اللغة";
+                document.getElementById("searchBtn").innerText = "🔍 ابحث";
+                document.getElementById("cityInput").placeholder = "اكتب اسم المدينة...";
+                document.getElementById("humidityLabel").childNodes[0].nodeValue = "رطوبة: ";
+                document.getElementById("windLabel").childNodes[0].nodeValue = "رياح: ";
+                document.getElementById("temperatureLabel").childNodes[0].nodeValue = "درجة الحرارة: ";
+            }
+        }
+
+        async function getWeatherData(city) {
+            const lang = currentLang;
+            const apiUrl = `https://localhost:7090/api/weather?city=${city}&lang=${lang}`;
             try {
                 const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    throw new Error("حدث خطأ أثناء جلب بيانات الطقس");
-                }
-                const data = await response.json();
-                return data;
+                if (!response.ok) throw new Error("فشل في جلب البيانات");
+                return await response.json();
             } catch (error) {
-                console.error(error);
-                alert("لا يمكن جلب بيانات الطقس. تأكد من اسم المدينة أو من تشغيل الـ API.");
+                alert("تعذر جلب بيانات الطقس.");
                 return null;
             }
+        }
+
+        async function getWeatherByLocation() {
+            if (!navigator.geolocation) {
+                alert("المتصفح لا يدعم تحديد الموقع");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                const lang = currentLang;
+
+                const apiUrl = `https://localhost:7090/api/weather/location?lat=${lat}&lon=${lon}&lang=${lang}`;
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    alert("فشل في جلب الطقس من الموقع.");
+                    return;
+                }
+                const data = await response.json();
+                updateWeatherCard(data);
+            }, () => {
+                alert("تعذر تحديد الموقع.");
+            });
         }
 
         function updateWeatherCard(data) {
             document.getElementById("weatherCard").style.display = "block";
 
             document.getElementById("cityName").innerText = data.city || "-";
-            document.getElementById("condition").innerText = data.condition || "-";
-            document.getElementById("temperature").innerText = `درجة الحرارة: ${data.temperature} °C`;
+            document.getElementById("condition").innerText = data.description || data.condition || "-";
+            document.getElementById("temperature").innerText = `${data.temperature} °C`;
+            document.getElementById("humidity").innerText = `${data.humidity || '-'}%`;
+            document.getElementById("wind").innerText = `${data.wind || '-'} km/h`;
+            document.getElementById("dateInfo").innerText = new Date(data.date).toLocaleString(currentLang === "ar" ? 'ar-LY' : 'en-US');
 
-            const dateObj = new Date(data.date);
-            document.getElementById("dateInfo").innerText = dateObj.toLocaleString('ar-LY');
-
-            document.getElementById("humidity").innerText = `رطوبة: ${data.humidity || '-'}`;
-            document.getElementById("wind").innerText = `رياح: ${data.wind || '-'} km/h`;
-
-            let icon = "☀️";
-            if (data.condition && data.condition.toLowerCase().includes("rain")) {
-                icon = "🌧";
-            } else if (data.condition && data.condition.toLowerCase().includes("cloud")) {
-                icon = "☁️";
-            }
-            document.getElementById("weatherIcon").innerText = icon;
+           
         }
 
         document.getElementById("searchBtn").addEventListener("click", async () => {
             const city = document.getElementById("cityInput").value.trim();
             if (city === "") {
-                alert("يرجى إدخال اسم المدينة");
+                alert(currentLang === "ar" ? "يرجى إدخال اسم المدينة" : "Please enter a city name");
                 return;
             }
-
+            localStorage.setItem("lastCity", city);
             const weatherData = await getWeatherData(city);
             if (weatherData) {
                 updateWeatherCard(weatherData);
             }
         });
 
-        // ✅ جلب بيانات الطقس مباشرة عند فتح الصفحة
         window.onload = async () => {
-            const defaultCity = "Gaza";
-            document.getElementById("cityInput").value = defaultCity;
-
-            const weatherData = await getWeatherData(defaultCity);
+            applyUILanguage();
+            const lastCity = localStorage.getItem("lastCity") || "Gaza";
+            document.getElementById("cityInput").value = lastCity;
+            const weatherData = await getWeatherData(lastCity);
             if (weatherData) {
                 updateWeatherCard(weatherData);
             }

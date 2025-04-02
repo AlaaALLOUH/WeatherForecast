@@ -8,6 +8,7 @@ namespace WeatherForecast.Models
         public double Temperature { get; set; }
         public string Condition { get; set; }
         public DateTime Date { get; set; }
+        public string Description { get; set; }
 
         public int Humidity { get; set; }     
         public double Wind { get; set; }      
