@@ -8,19 +8,23 @@ namespace WeatherForecast.Services
     public class WeatherService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiKey = "ae7cb489f65814bdd0deaf5070e165d7";
-        private readonly string _baseUrl = "http://api.openweathermap.org/data/2.5/weather";
+        private readonly string _apiKey;
+        private readonly string _baseUrl = "https://api.openweathermap.org/data/2.5/weather";
 
-        public WeatherService(HttpClient httpClient)
+        public WeatherService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
-        }
+            _apiKey = configuration["WeatherApiKey"]; // نجيب المفتاح من الإعدادات
+            //Console.WriteLine("API KEY LOADED: " + _apiKey);
 
+        }
         public async Task<WeatherForecast.Models.WeatherForecast> GetWeatherAsync(string city,string lang="en")
         {
             var url = $"{_baseUrl}?q={city}&appid={_apiKey}&units=metric&lang={lang}";
 
             var response = await _httpClient.GetAsync(url);
+            //Console.WriteLine("🔗 REQUEST URL: " + url);
+            //Console.WriteLine("📡 STATUS CODE: " + response.StatusCode);
             if (!response.IsSuccessStatusCode)
             {
                 throw new Exception("حدث خطأ أثناء جلب بيانات الطقس.");
@@ -48,6 +52,8 @@ namespace WeatherForecast.Services
             var url = $"{_baseUrl}?lat={lat}&lon={lon}&appid={_apiKey}&units=metric&lang={lang}";
 
             var response = await _httpClient.GetAsync(url);
+            //Console.WriteLine("🔗 REQUEST URL: " + url);
+            //Console.WriteLine("📡 STATUS CODE: " + response.StatusCode);
             if (!response.IsSuccessStatusCode)
                 throw new Exception("فشل في جلب بيانات الطقس.");
 
