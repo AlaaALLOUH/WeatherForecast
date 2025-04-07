@@ -25,5 +25,5 @@ To run the project locally:
 5. Open the browser at:
    https://localhost:PORT
     🌍 Languages Supported
-- 🇸🇦 Arabic  
+- 🇪🇭 Arabic  
 - 🇺🇸 English
